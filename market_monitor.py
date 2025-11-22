@@ -199,7 +199,8 @@ class MarketMonitor:
         self.linha_altura = 28  # pixels por linha
         self.linhas_visiveis = 8
         self.itens_por_pagina = 50
-        self.scroll_clicks = -8  # quantidade de "clicks" de scroll (negativo = para baixo)
+        self.scroll_clicks = -100  # quantidade de "clicks" de scroll (negativo = para baixo)
+        self.scroll_method = 'mouse'  # 'mouse', 'pagedown', ou 'down'
 
         # Área de scroll (onde posicionar o mouse para rolar)
         self.scroll_area = self._calcular_area_scroll()
@@ -232,15 +233,32 @@ class MarketMonitor:
         time.sleep(0.3)
 
     def scroll_down(self, linhas=8):
-        """Faz scroll para baixo (onde o mouse estiver)"""
-        # Scroll direto sem mover o mouse
-        pyautogui.scroll(self.scroll_clicks)
+        """Faz scroll para baixo"""
+        # Método 1: Tentar scroll do mouse com valor alto
+        # Método 2: Usar tecla Page Down (mais confiável)
+
+        if self.scroll_method == 'pagedown':
+            # Usa tecla Page Down
+            pyautogui.press('pagedown')
+        elif self.scroll_method == 'down':
+            # Usa seta para baixo várias vezes
+            for _ in range(linhas):
+                pyautogui.press('down')
+                time.sleep(0.05)
+        else:
+            # Scroll do mouse com valor configurável
+            pyautogui.scroll(self.scroll_clicks)
+
         time.sleep(0.5)  # Aguardar animação
 
     def scroll_to_top(self):
-        """Volta ao topo da lista (onde o mouse estiver)"""
-        # Scroll grande para cima para garantir que está no topo
-        pyautogui.scroll(50)
+        """Volta ao topo da lista"""
+        if self.scroll_method == 'pagedown':
+            pyautogui.press('home')  # Tecla Home vai pro topo
+        elif self.scroll_method == 'down':
+            pyautogui.press('home')
+        else:
+            pyautogui.scroll(100)  # Scroll grande pra cima
         time.sleep(0.5)
 
     def capturar_linhas_visiveis(self, debug=False):
@@ -553,12 +571,24 @@ class MarketMonitor:
         print("\n" + "="*70)
         print("🔧 CALIBRAÇÃO DE SCROLL")
         print("="*70)
-        print("\nVou fazer scrolls de teste. Observe se está rolando corretamente.")
-        print("Ajuste os valores conforme necessário.\n")
+        print("\nEscolha o MÉTODO de scroll:")
+        print("   1. Mouse scroll (padrão)")
+        print("   2. Page Down (tecla)")
+        print("   3. Seta para baixo (8x)")
 
-        print(f"📜 Scroll clicks: {self.scroll_clicks}")
+        metodo = input("\nEscolha (1/2/3): ")
+        if metodo == '2':
+            self.scroll_method = 'pagedown'
+        elif metodo == '3':
+            self.scroll_method = 'down'
+        else:
+            self.scroll_method = 'mouse'
 
-        input("\nPressione ENTER, posicione o MOUSE no mercado e aguarde...")
+        print(f"\n✅ Método: {self.scroll_method}")
+        if self.scroll_method == 'mouse':
+            print(f"📜 Scroll clicks: {self.scroll_clicks}")
+
+        input("\nPressione ENTER, posicione o MOUSE/FOCO no mercado e aguarde...")
 
         # Countdown para posicionar
         for i in range(5, 0, -1):
