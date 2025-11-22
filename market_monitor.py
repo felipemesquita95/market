@@ -355,11 +355,12 @@ class MarketMonitor:
 
             print(f"     ✅ {novos} novos | ⚠️ {duplicados} duplicados | Total: {len(todos_itens)}")
 
-            # Se não tem novos, provavelmente chegou no fim
-            if novos == 0:
+            # Se não tem novos OU tem mais duplicados que novos, provavelmente chegou no fim
+            if novos == 0 or (duplicados > 0 and duplicados >= novos):
                 scrolls_sem_novos += 1
+                print(f"     ⚠️ Poucos novos ({scrolls_sem_novos}/2)")
                 if scrolls_sem_novos >= 2:
-                    print("  🏁 Fim da página!")
+                    print("  🏁 Fim da página! (muitos duplicados)")
                     break
             else:
                 scrolls_sem_novos = 0
