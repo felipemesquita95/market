@@ -303,10 +303,15 @@ class MarketMonitor:
         scrolls_sem_novos = 0
         max_scrolls = 8  # ~50 itens / 8 por vez = ~7 scrolls
 
-        # Voltar ao topo primeiro
+        # PRIMEIRO: Voltar ao topo
         print("  ⬆️ Voltando ao topo...")
         self.scroll_to_top()
-        time.sleep(0.5)
+        time.sleep(0.3)
+
+        # SEGUNDO: Apertar seta ↓ 8x para posicionar cursor na linha 8
+        print(f"  ⬇️ Posicionando cursor (seta x{self.setas_por_scroll})...")
+        self.scroll_down()
+        time.sleep(0.3)
 
         for scroll_num in range(max_scrolls):
             print(f"\n  📸 Bloco {scroll_num + 1}/{max_scrolls}...")
@@ -315,13 +320,16 @@ class MarketMonitor:
             itens = self.capturar_linhas_visiveis(debug=debug)
 
             novos = 0
+            duplicados = 0
             for item in itens:
                 if item['ID'] not in ids_vistos:
                     ids_vistos.add(item['ID'])
                     todos_itens.append(item)
                     novos += 1
+                else:
+                    duplicados += 1
 
-            print(f"     ✅ {novos} novos | Total: {len(todos_itens)}")
+            print(f"     ✅ {novos} novos | ⚠️ {duplicados} duplicados | Total: {len(todos_itens)}")
 
             # Se não tem novos, provavelmente chegou no fim
             if novos == 0:
@@ -337,7 +345,7 @@ class MarketMonitor:
                 print(f"  🏁 {self.itens_por_pagina} itens coletados!")
                 break
 
-            # Seta ↓ para próximas 8 linhas
+            # Seta ↓ para próximas 8 linhas (as antigas sobem, novas aparecem)
             print(f"     ⬇️ Seta x{self.setas_por_scroll}...")
             self.scroll_down()
 
