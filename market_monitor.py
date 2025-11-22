@@ -10,6 +10,7 @@ import time
 import re
 import numpy as np
 import os
+import winsound  # Para alerta sonoro no Windows
 
 
 class OCREngine:
@@ -234,6 +235,26 @@ class MarketMonitor:
         pyautogui.click(x + w//2, y + h//2)
         time.sleep(0.3)
 
+    def alerta_sonoro(self, tipo='sucesso'):
+        """Toca alerta sonoro"""
+        try:
+            if tipo == 'sucesso':
+                # 3 beeps de sucesso
+                for _ in range(3):
+                    winsound.Beep(1000, 200)  # frequência 1000Hz, 200ms
+                    time.sleep(0.1)
+            elif tipo == 'erro':
+                # 1 beep grave de erro
+                winsound.Beep(400, 500)
+            elif tipo == 'atencao':
+                # 2 beeps de atenção
+                winsound.Beep(800, 300)
+                time.sleep(0.1)
+                winsound.Beep(800, 300)
+        except:
+            # Se não conseguir tocar som, imprime mensagem
+            print("🔔 ALERTA!")
+
     def salvar_posicao_mouse(self):
         """Salva a posição atual do mouse como posição segura"""
         self.mouse_pos_segura = pyautogui.position()
@@ -418,6 +439,8 @@ class MarketMonitor:
         if todos_itens:
             self.df = pd.DataFrame(todos_itens)
             print(f"\n✅ Total coletado: {len(self.df)} itens")
+            # Alerta sonoro de sucesso
+            self.alerta_sonoro('sucesso')
 
         return todos_itens
 
