@@ -200,7 +200,8 @@ class MarketMonitor:
         self.linhas_visiveis = 8
         self.itens_por_pagina = 50
         self.scroll_clicks = -100  # quantidade de "clicks" de scroll (negativo = para baixo)
-        self.scroll_method = 'mouse'  # 'mouse', 'pagedown', ou 'down'
+        self.scroll_method = 'drag'  # 'mouse', 'pagedown', 'down', ou 'drag'
+        self.drag_distance = 200  # pixels para arrastar
 
         # Área de scroll (onde posicionar o mouse para rolar)
         self.scroll_area = self._calcular_area_scroll()
@@ -234,31 +235,35 @@ class MarketMonitor:
 
     def scroll_down(self, linhas=8):
         """Faz scroll para baixo"""
-        # Método 1: Tentar scroll do mouse com valor alto
-        # Método 2: Usar tecla Page Down (mais confiável)
-
-        if self.scroll_method == 'pagedown':
-            # Usa tecla Page Down
+        if self.scroll_method == 'drag':
+            # Arrastar: pega posição atual do mouse, arrasta pra cima
+            x, y = pyautogui.position()
+            # Arrastar pra CIMA faz a lista ir pra BAIXO
+            pyautogui.moveTo(x, y)
+            pyautogui.drag(0, -self.drag_distance, duration=0.3)
+        elif self.scroll_method == 'pagedown':
             pyautogui.press('pagedown')
         elif self.scroll_method == 'down':
-            # Usa seta para baixo várias vezes
             for _ in range(linhas):
                 pyautogui.press('down')
                 time.sleep(0.05)
         else:
-            # Scroll do mouse com valor configurável
             pyautogui.scroll(self.scroll_clicks)
 
         time.sleep(0.5)  # Aguardar animação
 
     def scroll_to_top(self):
         """Volta ao topo da lista"""
-        if self.scroll_method == 'pagedown':
-            pyautogui.press('home')  # Tecla Home vai pro topo
-        elif self.scroll_method == 'down':
+        if self.scroll_method == 'drag':
+            # Arrastar pra BAIXO várias vezes faz a lista voltar pro TOPO
+            x, y = pyautogui.position()
+            for _ in range(5):
+                pyautogui.drag(0, self.drag_distance, duration=0.2)
+                time.sleep(0.1)
+        elif self.scroll_method in ['pagedown', 'down']:
             pyautogui.press('home')
         else:
-            pyautogui.scroll(100)  # Scroll grande pra cima
+            pyautogui.scroll(100)
         time.sleep(0.5)
 
     def capturar_linhas_visiveis(self, debug=False):
@@ -572,21 +577,26 @@ class MarketMonitor:
         print("🔧 CALIBRAÇÃO DE SCROLL")
         print("="*70)
         print("\nEscolha o MÉTODO de scroll:")
-        print("   1. Mouse scroll (padrão)")
+        print("   1. Mouse scroll")
         print("   2. Page Down (tecla)")
         print("   3. Seta para baixo (8x)")
+        print("   4. ARRASTAR (drag) - recomendado!")
 
-        metodo = input("\nEscolha (1/2/3): ")
+        metodo = input("\nEscolha (1/2/3/4): ")
         if metodo == '2':
             self.scroll_method = 'pagedown'
         elif metodo == '3':
             self.scroll_method = 'down'
+        elif metodo == '4':
+            self.scroll_method = 'drag'
         else:
             self.scroll_method = 'mouse'
 
         print(f"\n✅ Método: {self.scroll_method}")
         if self.scroll_method == 'mouse':
             print(f"📜 Scroll clicks: {self.scroll_clicks}")
+        elif self.scroll_method == 'drag':
+            print(f"📜 Drag distance: {self.drag_distance}px")
 
         input("\nPressione ENTER, posicione o MOUSE/FOCO no mercado e aguarde...")
 
@@ -603,26 +613,43 @@ class MarketMonitor:
 
         if ok != 's':
             print("\n🔧 Vamos ajustar! Opções:")
-            print("   1. Aumentar scroll (rolou pouco)")
-            print("   2. Diminuir scroll (rolou demais)")
+            print("   1. Aumentar (rolou pouco)")
+            print("   2. Diminuir (rolou demais)")
             print("   3. Definir valor manual")
-            print(f"\n   Valor atual: {self.scroll_clicks}")
+
+            if self.scroll_method == 'drag':
+                print(f"\n   Valor atual: {self.drag_distance}px")
+            else:
+                print(f"\n   Valor atual: {self.scroll_clicks}")
 
             ajuste = input("\nEscolha (1/2/3): ")
 
-            if ajuste == '1':
-                self.scroll_clicks = self.scroll_clicks - 5  # Mais negativo = mais scroll
-                print(f"✅ Aumentado para {self.scroll_clicks}")
-            elif ajuste == '2':
-                self.scroll_clicks = self.scroll_clicks + 3  # Menos negativo = menos scroll
-                print(f"✅ Diminuído para {self.scroll_clicks}")
-            elif ajuste == '3':
-                novo = input(f"Novo valor (negativo para baixo, ex: -10): ")
-                try:
-                    self.scroll_clicks = int(novo)
-                    print(f"✅ Atualizado para {self.scroll_clicks}")
-                except:
-                    print("❌ Valor inválido")
+            if self.scroll_method == 'drag':
+                if ajuste == '1':
+                    self.drag_distance += 50
+                    print(f"✅ Aumentado para {self.drag_distance}px")
+                elif ajuste == '2':
+                    self.drag_distance -= 30
+                    print(f"✅ Diminuído para {self.drag_distance}px")
+                elif ajuste == '3':
+                    novo = input(f"Novo valor em pixels (ex: 200): ")
+                    if novo.isdigit():
+                        self.drag_distance = int(novo)
+                        print(f"✅ Atualizado para {self.drag_distance}px")
+            else:
+                if ajuste == '1':
+                    self.scroll_clicks = self.scroll_clicks - 50
+                    print(f"✅ Aumentado para {self.scroll_clicks}")
+                elif ajuste == '2':
+                    self.scroll_clicks = self.scroll_clicks + 30
+                    print(f"✅ Diminuído para {self.scroll_clicks}")
+                elif ajuste == '3':
+                    novo = input(f"Novo valor (negativo para baixo, ex: -100): ")
+                    try:
+                        self.scroll_clicks = int(novo)
+                        print(f"✅ Atualizado para {self.scroll_clicks}")
+                    except:
+                        print("❌ Valor inválido")
 
             # Testar novamente?
             if input("\nTestar novamente? (s/n): ").lower() == 's':
