@@ -200,11 +200,12 @@ class MarketMonitor:
         self.linhas_visiveis = 8
         self.itens_por_pagina = 50
         self.scroll_clicks = -100  # quantidade de "clicks" de scroll (negativo = para baixo)
-        self.scroll_method = 'drag'  # 'mouse', 'pagedown', 'down', ou 'drag'
+        self.scroll_method = 'down'  # 'mouse', 'pagedown', 'down', ou 'drag'
         self.drag_distance = 200  # pixels para arrastar
+        self.setas_por_scroll = 8  # quantas vezes apertar seta ↓
 
-        # Área de scroll (onde posicionar o mouse para rolar)
-        self.scroll_area = self._calcular_area_scroll()
+        # Posição segura do mouse (usuário define)
+        self.mouse_pos_segura = None
 
         print("✅ Market Monitor iniciado!")
         print(f"📍 Posição: ({self.mx}, {self.my})")
@@ -233,38 +234,32 @@ class MarketMonitor:
         pyautogui.click(x + w//2, y + h//2)
         time.sleep(0.3)
 
-    def scroll_down(self, linhas=8):
-        """Faz scroll para baixo"""
-        if self.scroll_method == 'drag':
-            # Arrastar: pega posição atual do mouse, arrasta pra cima
-            x, y = pyautogui.position()
-            # Arrastar pra CIMA faz a lista ir pra BAIXO
-            pyautogui.moveTo(x, y)
-            pyautogui.drag(0, -self.drag_distance, duration=0.3)
-        elif self.scroll_method == 'pagedown':
-            pyautogui.press('pagedown')
-        elif self.scroll_method == 'down':
-            for _ in range(linhas):
-                pyautogui.press('down')
-                time.sleep(0.05)
-        else:
-            pyautogui.scroll(self.scroll_clicks)
+    def salvar_posicao_mouse(self):
+        """Salva a posição atual do mouse como posição segura"""
+        self.mouse_pos_segura = pyautogui.position()
+        print(f"📍 Posição do mouse salva: {self.mouse_pos_segura}")
 
-        time.sleep(0.5)  # Aguardar animação
+    def restaurar_posicao_mouse(self):
+        """Move o mouse de volta para a posição segura"""
+        if self.mouse_pos_segura:
+            pyautogui.moveTo(self.mouse_pos_segura[0], self.mouse_pos_segura[1])
+            time.sleep(0.2)
+
+    def scroll_down(self, linhas=8):
+        """Faz scroll para baixo usando setas"""
+        # Usa seta para baixo N vezes
+        for _ in range(self.setas_por_scroll):
+            pyautogui.press('down')
+            time.sleep(0.05)
+        time.sleep(0.3)  # Aguardar animação
 
     def scroll_to_top(self):
-        """Volta ao topo da lista"""
-        if self.scroll_method == 'drag':
-            # Arrastar pra BAIXO várias vezes faz a lista voltar pro TOPO
-            x, y = pyautogui.position()
-            for _ in range(5):
-                pyautogui.drag(0, self.drag_distance, duration=0.2)
-                time.sleep(0.1)
-        elif self.scroll_method in ['pagedown', 'down']:
-            pyautogui.press('home')
-        else:
-            pyautogui.scroll(100)
-        time.sleep(0.5)
+        """Volta ao topo da lista usando setas para cima"""
+        # Aperta seta pra cima muitas vezes pra garantir que está no topo
+        for _ in range(60):  # 60 vezes pra garantir
+            pyautogui.press('up')
+            time.sleep(0.02)
+        time.sleep(0.3)
 
     def capturar_linhas_visiveis(self, debug=False):
         """Captura as 8 linhas atualmente visíveis"""
@@ -300,20 +295,21 @@ class MarketMonitor:
         return data
 
     def coletar_pagina_completa(self, debug=False):
-        """Coleta todos os ~50 itens de uma página fazendo scroll"""
+        """Coleta todos os ~50 itens de uma página: captura 8, seta 8x, repete"""
         print("\n📄 Coletando página completa...")
 
         todos_itens = []
         ids_vistos = set()
         scrolls_sem_novos = 0
-        max_scrolls = 10  # Segurança para não ficar em loop infinito
+        max_scrolls = 8  # ~50 itens / 8 por vez = ~7 scrolls
 
         # Voltar ao topo primeiro
+        print("  ⬆️ Voltando ao topo...")
         self.scroll_to_top()
         time.sleep(0.5)
 
         for scroll_num in range(max_scrolls):
-            print(f"  📜 Scroll {scroll_num + 1}...")
+            print(f"\n  📸 Bloco {scroll_num + 1}/{max_scrolls}...")
 
             # Capturar linhas visíveis
             itens = self.capturar_linhas_visiveis(debug=debug)
@@ -325,18 +321,25 @@ class MarketMonitor:
                     todos_itens.append(item)
                     novos += 1
 
-            print(f"     {novos} novos itens (total: {len(todos_itens)})")
+            print(f"     ✅ {novos} novos | Total: {len(todos_itens)}")
 
+            # Se não tem novos, provavelmente chegou no fim
             if novos == 0:
                 scrolls_sem_novos += 1
                 if scrolls_sem_novos >= 2:
-                    print("  ✅ Fim da página detectado!")
+                    print("  🏁 Fim da página!")
                     break
             else:
                 scrolls_sem_novos = 0
 
-            # Scroll para próximas linhas
-            self.scroll_down(linhas=self.linhas_visiveis)
+            # Se já tem ~50 itens, para
+            if len(todos_itens) >= self.itens_por_pagina:
+                print(f"  🏁 {self.itens_por_pagina} itens coletados!")
+                break
+
+            # Seta ↓ para próximas 8 linhas
+            print(f"     ⬇️ Seta x{self.setas_por_scroll}...")
+            self.scroll_down()
 
         return todos_itens
 
@@ -345,6 +348,9 @@ class MarketMonitor:
         print("\n" + "="*70)
         print("🔄 COLETANDO TODAS AS PÁGINAS")
         print("="*70)
+
+        # Salvar posição do mouse
+        self.salvar_posicao_mouse()
 
         todos_itens = []
         ids_globais = set()
@@ -358,7 +364,7 @@ class MarketMonitor:
                 print(f"📄 PÁGINA {pagina}")
                 print(f"{'─'*60}")
 
-                # Coletar página completa
+                # Coletar página completa (captura 8, seta 8x, repete)
                 itens_pagina = self.coletar_pagina_completa(debug=debug)
 
                 if not itens_pagina:
@@ -381,16 +387,21 @@ class MarketMonitor:
                 else:
                     paginas_repetidas = 0
                     todos_itens.extend(novos_itens)
-                    print(f"✅ {len(novos_itens)} novos | Total: {len(todos_itens)}")
+                    print(f"✅ {len(novos_itens)} novos | Total geral: {len(todos_itens)}")
 
                 if max_paginas and pagina >= max_paginas:
                     print(f"\n✅ Limite de {max_paginas} páginas atingido")
                     break
 
-                # Próxima página
+                # Clicar Próxima Página
                 print("\n🖱️ Clicando Próxima Página...")
                 self.click('Próxima Página')
-                time.sleep(1.5)
+                time.sleep(1)
+
+                # Restaurar posição do mouse para a posição segura
+                print("🖱️ Restaurando posição do mouse...")
+                self.restaurar_posicao_mouse()
+                time.sleep(0.5)
 
         except KeyboardInterrupt:
             print(f"\n⚠️ Interrompido na página {pagina}")
@@ -572,86 +583,49 @@ class MarketMonitor:
             print(f"✅ Histórico salvo: {hist_filename}")
 
     def calibrar_scroll(self):
-        """Modo de calibração do scroll"""
+        """Modo de calibração - testa seta para baixo"""
         print("\n" + "="*70)
-        print("🔧 CALIBRAÇÃO DE SCROLL")
+        print("🔧 CALIBRAÇÃO DE SCROLL (Seta ↓)")
         print("="*70)
-        print("\nEscolha o MÉTODO de scroll:")
-        print("   1. Mouse scroll")
-        print("   2. Page Down (tecla)")
-        print("   3. Seta para baixo (8x)")
-        print("   4. ARRASTAR (drag) - recomendado!")
+        print(f"\n📜 Configuração atual: {self.setas_por_scroll} setas por scroll")
 
-        metodo = input("\nEscolha (1/2/3/4): ")
-        if metodo == '2':
-            self.scroll_method = 'pagedown'
-        elif metodo == '3':
-            self.scroll_method = 'down'
-        elif metodo == '4':
-            self.scroll_method = 'drag'
-        else:
-            self.scroll_method = 'mouse'
+        input("\nPressione ENTER, posicione o MOUSE na lista do mercado...")
 
-        print(f"\n✅ Método: {self.scroll_method}")
-        if self.scroll_method == 'mouse':
-            print(f"📜 Scroll clicks: {self.scroll_clicks}")
-        elif self.scroll_method == 'drag':
-            print(f"📜 Drag distance: {self.drag_distance}px")
-
-        input("\nPressione ENTER, posicione o MOUSE/FOCO no mercado e aguarde...")
-
-        # Countdown para posicionar
+        # Countdown
         for i in range(5, 0, -1):
-            print(f"⏳ {i} segundos - posicione o MOUSE dentro do mercado...")
+            print(f"⏳ {i}s - posicione o MOUSE na lista...")
             time.sleep(1)
 
-        print("\n📜 Fazendo scroll de 8 linhas para baixo...")
-        self.scroll_down(8)
+        # Salvar posição
+        self.salvar_posicao_mouse()
 
-        time.sleep(1)
-        ok = input("\nScrollou corretamente ~8 linhas? (s/n): ").lower()
+        print(f"\n⬇️ Apertando seta ↓ {self.setas_por_scroll} vezes...")
+        self.scroll_down()
+
+        time.sleep(0.5)
+        ok = input("\nDesceu ~8 itens corretamente? (s/n): ").lower()
 
         if ok != 's':
-            print("\n🔧 Vamos ajustar! Opções:")
-            print("   1. Aumentar (rolou pouco)")
-            print("   2. Diminuir (rolou demais)")
+            print("\n🔧 Ajustar quantidade de setas:")
+            print("   1. Aumentar (desceu pouco)")
+            print("   2. Diminuir (desceu demais)")
             print("   3. Definir valor manual")
-
-            if self.scroll_method == 'drag':
-                print(f"\n   Valor atual: {self.drag_distance}px")
-            else:
-                print(f"\n   Valor atual: {self.scroll_clicks}")
+            print(f"\n   Atual: {self.setas_por_scroll} setas")
 
             ajuste = input("\nEscolha (1/2/3): ")
 
-            if self.scroll_method == 'drag':
-                if ajuste == '1':
-                    self.drag_distance += 50
-                    print(f"✅ Aumentado para {self.drag_distance}px")
-                elif ajuste == '2':
-                    self.drag_distance -= 30
-                    print(f"✅ Diminuído para {self.drag_distance}px")
-                elif ajuste == '3':
-                    novo = input(f"Novo valor em pixels (ex: 200): ")
-                    if novo.isdigit():
-                        self.drag_distance = int(novo)
-                        print(f"✅ Atualizado para {self.drag_distance}px")
-            else:
-                if ajuste == '1':
-                    self.scroll_clicks = self.scroll_clicks - 50
-                    print(f"✅ Aumentado para {self.scroll_clicks}")
-                elif ajuste == '2':
-                    self.scroll_clicks = self.scroll_clicks + 30
-                    print(f"✅ Diminuído para {self.scroll_clicks}")
-                elif ajuste == '3':
-                    novo = input(f"Novo valor (negativo para baixo, ex: -100): ")
-                    try:
-                        self.scroll_clicks = int(novo)
-                        print(f"✅ Atualizado para {self.scroll_clicks}")
-                    except:
-                        print("❌ Valor inválido")
+            if ajuste == '1':
+                self.setas_por_scroll += 2
+                print(f"✅ Aumentado para {self.setas_por_scroll}")
+            elif ajuste == '2':
+                self.setas_por_scroll = max(1, self.setas_por_scroll - 2)
+                print(f"✅ Diminuído para {self.setas_por_scroll}")
+            elif ajuste == '3':
+                novo = input("Quantas setas por scroll? ")
+                if novo.isdigit():
+                    self.setas_por_scroll = int(novo)
+                    print(f"✅ Definido: {self.setas_por_scroll}")
 
-            # Testar novamente?
             if input("\nTestar novamente? (s/n): ").lower() == 's':
                 self.calibrar_scroll()
         else:
