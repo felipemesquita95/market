@@ -566,24 +566,48 @@ class MarketMonitor:
         print(f"📍 Área de scroll: {self.scroll_area}")
         print(f"📏 Altura da linha: {self.linha_altura}px")
 
-        input("\nPressione ENTER para testar scroll...")
+        input("\nPressione ENTER e posicione o MERCADO na tela...")
 
-        print("Movendo mouse para área de scroll...")
+        # Countdown para posicionar
+        for i in range(5, 0, -1):
+            print(f"⏳ {i} segundos para posicionar o mercado...")
+            time.sleep(1)
+
+        print("\n🖱️ Movendo mouse para área de scroll...")
         pyautogui.moveTo(self.scroll_area[0], self.scroll_area[1])
         time.sleep(1)
 
-        print("Fazendo scroll de 8 linhas para baixo...")
+        print("📜 Fazendo scroll de 8 linhas para baixo...")
         self.scroll_down(8)
 
+        time.sleep(1)
         ok = input("\nScrollou corretamente ~8 linhas? (s/n): ").lower()
 
         if ok != 's':
-            print("\n🔧 Ajuste o valor 'linha_altura' ou a fórmula de scroll")
-            print("   Atual: scroll_amount = -int(linhas * linha_altura / 10)")
-            novo = input("Novo valor de linha_altura (atual=28): ")
-            if novo.isdigit():
-                self.linha_altura = int(novo)
-                print(f"✅ Atualizado para {self.linha_altura}px")
+            print("\n🔧 Vamos ajustar! Opções:")
+            print("   1. Aumentar scroll (rolou pouco)")
+            print("   2. Diminuir scroll (rolou demais)")
+            print("   3. Definir valor manual")
+
+            ajuste = input("Escolha (1/2/3): ")
+
+            if ajuste == '1':
+                self.linha_altura = int(self.linha_altura * 1.5)
+                print(f"✅ Aumentado para {self.linha_altura}px")
+            elif ajuste == '2':
+                self.linha_altura = int(self.linha_altura * 0.7)
+                print(f"✅ Diminuído para {self.linha_altura}px")
+            elif ajuste == '3':
+                novo = input(f"Novo valor (atual={self.linha_altura}): ")
+                if novo.isdigit():
+                    self.linha_altura = int(novo)
+                    print(f"✅ Atualizado para {self.linha_altura}px")
+
+            # Testar novamente?
+            if input("\nTestar novamente? (s/n): ").lower() == 's':
+                self.calibrar_scroll()
+        else:
+            print("✅ Calibração OK!")
 
 
 def main():
