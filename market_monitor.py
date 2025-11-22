@@ -132,7 +132,16 @@ class OCREngine:
         return None, texto
 
     def separar_inteligente(self, texto):
-        """Separa o texto de forma inteligente"""
+        """
+        Separa o texto no formato:
+        [Nome do Pokemon (+boost)] [Vendedor] [Quantidade] [Preço]
+
+        Exemplo: "Pikachu +70 Jestem Dawidek 1 50K"
+        - Nome: Pikachu +70
+        - Vendedor: Jestem Dawidek
+        - Quantidade: 1
+        - Preço: 50K
+        """
         if not texto:
             return None
 
@@ -148,29 +157,57 @@ class OCREngine:
             'Texto_Raw': texto_original
         }
 
-        preco_str, texto = self.extrair_preco_do_texto(texto)
-        if preco_str:
-            dados['Preco_Formatado'] = preco_str
-            dados['Preco'] = self.parse_preco(preco_str)
+        # 1. Extrair PREÇO do final (padrão K/M/KK)
+        preco_match = re.search(r'([\d.]+\s*(?:KK|K|M|kk|k|m))\s*$', texto)
+        if preco_match:
+            dados['Preco_Formatado'] = preco_match.group(1)
+            dados['Preco'] = self.parse_preco(preco_match.group(1))
+            texto = texto[:preco_match.start()].strip()
 
-        qtd, texto = self.extrair_quantidade_do_texto(texto)
-        if qtd:
-            dados['Quantidade'] = qtd
+        # 2. Extrair QUANTIDADE (número isolado no final)
+        qtd_match = re.search(r'\s+(\d+)\s*$', texto)
+        if qtd_match:
+            dados['Quantidade'] = int(qtd_match.group(1))
+            texto = texto[:qtd_match.start()].strip()
 
-        partes = texto.split()
+        # 3. Separar NOME e VENDEDOR
+        # O nome do Pokemon termina com +XX (boost) ou é o primeiro "bloco"
+        # Padrão: procurar +XX (boost) - tudo até aí é o nome
+        boost_match = re.search(r'^(.+?\s*\+\d+)\s+(.+)$', texto)
 
-        if len(partes) >= 2:
-            vendedor_idx = len(partes) - 1
-            for i in range(len(partes) - 1, 0, -1):
-                palavra = partes[i]
-                if palavra and palavra[0].isalpha() and not re.search(r'\d+[KMkm]', palavra):
-                    vendedor_idx = i
-                    break
+        if boost_match:
+            # Tem boost: Nome = tudo até +XX, Vendedor = resto
+            dados['Nome'] = boost_match.group(1).strip()
+            dados['Vendedor'] = boost_match.group(2).strip()
+        else:
+            # Sem boost: tentar dividir de outra forma
+            # Pokemon sem boost geralmente tem nome simples (1-3 palavras)
+            # Vendedor vem depois
+            partes = texto.split()
 
-            dados['Nome'] = ' '.join(partes[:vendedor_idx])
-            dados['Vendedor'] = ' '.join(partes[vendedor_idx:])
-        elif len(partes) == 1:
-            dados['Nome'] = partes[0]
+            if len(partes) >= 2:
+                # Heurística: Pokemon geralmente tem 1-3 palavras
+                # Se tem "Shiny" no início, conta como parte do nome
+                nome_palavras = 1
+
+                # Se começa com Shiny/Elite/Crystal/Giant, nome tem mais palavras
+                prefixos = ['Shiny', 'Elite', 'Crystal', 'Giant', 'Mega']
+                if partes[0] in prefixos and len(partes) >= 3:
+                    nome_palavras = 2
+
+                # Se a segunda palavra parece nome de Pokemon (não é nome de player comum)
+                # aumenta o nome
+                if len(partes) > nome_palavras:
+                    # Vendedor geralmente é 1-2 palavras no final
+                    if len(partes) <= 3:
+                        dados['Nome'] = partes[0]
+                        dados['Vendedor'] = ' '.join(partes[1:])
+                    else:
+                        # Divide: assume vendedor é última(s) palavra(s)
+                        dados['Nome'] = ' '.join(partes[:-1])
+                        dados['Vendedor'] = partes[-1]
+            elif len(partes) == 1:
+                dados['Nome'] = partes[0]
 
         return dados
 
