@@ -1,0 +1,8 @@
+pyautogui
+easyocr
+pillow
+opencv-python
+pandas
+matplotlib
+seaborn
+numpy

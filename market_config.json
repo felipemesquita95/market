@@ -1,0 +1,22 @@
+{
+    "market_x": 98,
+    "market_y": 87,
+    "market_width": 640,
+    "market_height": 450,
+    "offset_x": 0,
+    "offset_y": 0,
+    "areas": {
+        "header_y": 150,
+        "table_start_y": 100,
+        "row_height": 26,
+        "num_rows": 8,
+        "nome_x": 190,
+        "nome_w": 170,
+        "vendedor_x": 365,
+        "vendedor_w": 118,
+        "quantidade_x": 488,
+        "quantidade_w": 70,
+        "preco_x": 565,
+        "preco_w": 110
+    }
+}

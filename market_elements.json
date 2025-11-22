@@ -1,0 +1,184 @@
+{
+    "market_x": 536,
+    "market_y": 236,
+    "offset_x": 0,
+    "offset_y": 0,
+    "elements": {
+        "Mercado": {
+            "x": 364,
+            "y": 22,
+            "w": 120,
+            "h": 36,
+            "desc": "T\u00edtulo",
+            "color": "red"
+        },
+        "Pesquisar": {
+            "x": 546,
+            "y": 144,
+            "w": 36,
+            "h": 36,
+            "desc": "\u00cdcone",
+            "color": "lime"
+        },
+        "Procurar": {
+            "x": 588,
+            "y": 144,
+            "w": 220,
+            "h": 36,
+            "desc": "Texto",
+            "color": "red"
+        },
+        "Nome": {
+            "x": 232,
+            "y": 188,
+            "w": 54,
+            "h": 26,
+            "desc": "Filtro",
+            "color": "lime"
+        },
+        "Vendedor": {
+            "x": 400,
+            "y": 188,
+            "w": 80,
+            "h": 26,
+            "desc": "Filtro",
+            "color": "gold"
+        },
+        "Quantidade": {
+            "x": 536,
+            "y": 188,
+            "w": 94,
+            "h": 26,
+            "desc": "Filtro",
+            "color": "orange"
+        },
+        "Pre\u00e7o Unit\u00e1rio": {
+            "x": 670,
+            "y": 188,
+            "w": 110,
+            "h": 26,
+            "desc": "Filtro",
+            "color": "magenta"
+        },
+        "Atualizar": {
+            "x": 770,
+            "y": 80,
+            "w": 46,
+            "h": 44,
+            "desc": "\u00cdcone",
+            "color": "yellow"
+        },
+        "Comprar": {
+            "x": 440,
+            "y": 510,
+            "w": 150,
+            "h": 44,
+            "desc": "\u00cdcone",
+            "color": "lightgreen"
+        },
+        "Fazer Oferta": {
+            "x": 640,
+            "y": 510,
+            "w": 150,
+            "h": 44,
+            "desc": "\u00cdcone",
+            "color": "cyan"
+        },
+        "Primeira P\u00e1gina": {
+            "x": 41,
+            "y": 520,
+            "w": 26,
+            "h": 30,
+            "desc": "\u00cdcone",
+            "color": "red"
+        },
+        "P\u00e1gina Anterior": {
+            "x": 70,
+            "y": 520,
+            "w": 26,
+            "h": 30,
+            "desc": "\u00cdcone",
+            "color": "orange"
+        },
+        "Pr\u00f3xima P\u00e1gina": {
+            "x": 200,
+            "y": 520,
+            "w": 26,
+            "h": 30,
+            "desc": "\u00cdcone",
+            "color": "red"
+        },
+        "\u00daltima P\u00e1gina": {
+            "x": 230,
+            "y": 520,
+            "w": 26,
+            "h": 30,
+            "desc": "\u00cdcone",
+            "color": "orange"
+        },
+        "Linha01": {
+            "x": 150,
+            "y": 218,
+            "w": 653,
+            "h": 28,
+            "desc": "Linha",
+            "color": "red"
+        },
+        "Linha02": {
+            "x": 150,
+            "y": 254,
+            "w": 653,
+            "h": 28,
+            "desc": "Linha",
+            "color": "red"
+        },
+        "Linha03": {
+            "x": 150,
+            "y": 291,
+            "w": 653,
+            "h": 28,
+            "desc": "Linha",
+            "color": "pink"
+        },
+        "Linha04": {
+            "x": 150,
+            "y": 326,
+            "w": 653,
+            "h": 28,
+            "desc": "Linha",
+            "color": "gold"
+        },
+        "Linha05": {
+            "x": 150,
+            "y": 362,
+            "w": 653,
+            "h": 28,
+            "desc": "Linha",
+            "color": "cyan"
+        },
+        "Linha06": {
+            "x": 150,
+            "y": 399,
+            "w": 653,
+            "h": 28,
+            "desc": "Linha",
+            "color": "pink"
+        },
+        "Linha07": {
+            "x": 150,
+            "y": 435,
+            "w": 653,
+            "h": 28,
+            "desc": "Linha",
+            "color": "red"
+        },
+        "Linha08": {
+            "x": 150,
+            "y": 468,
+            "w": 653,
+            "h": 28,
+            "desc": "Linha",
+            "color": "magenta"
+        }
+    }
+}
