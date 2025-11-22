@@ -329,9 +329,12 @@ class MarketMonitor:
         self.scroll_to_top()
         time.sleep(0.3)
 
-        # SEGUNDO: Apertar seta ↓ 8x para posicionar cursor na linha 8
-        print(f"  ⬇️ Posicionando cursor (seta x{self.setas_por_scroll})...")
-        self.scroll_down()
+        # SEGUNDO: Apertar seta ↓ 7x para posicionar cursor na linha 8 (1+7=8)
+        setas_inicial = self.setas_por_scroll - 1
+        print(f"  ⬇️ Posicionando cursor (seta x{setas_inicial})...")
+        for _ in range(setas_inicial):
+            pyautogui.press('down')
+            time.sleep(0.05)
         time.sleep(0.3)
 
         for scroll_num in range(max_scrolls):
