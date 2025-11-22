@@ -199,6 +199,7 @@ class MarketMonitor:
         self.linha_altura = 28  # pixels por linha
         self.linhas_visiveis = 8
         self.itens_por_pagina = 50
+        self.scroll_clicks = -8  # quantidade de "clicks" de scroll (negativo = para baixo)
 
         # Área de scroll (onde posicionar o mouse para rolar)
         self.scroll_area = self._calcular_area_scroll()
@@ -236,10 +237,8 @@ class MarketMonitor:
         pyautogui.moveTo(self.scroll_area[0], self.scroll_area[1])
         time.sleep(0.1)
 
-        # Scroll negativo = para baixo
-        # Cada "click" de scroll geralmente move ~3 linhas, ajustar conforme necessário
-        scroll_amount = -int(linhas * self.linha_altura / 10)
-        pyautogui.scroll(scroll_amount)
+        # Usar valor configurável de scroll
+        pyautogui.scroll(self.scroll_clicks)
         time.sleep(0.5)  # Aguardar animação
 
     def scroll_to_top(self):
@@ -564,7 +563,7 @@ class MarketMonitor:
         print("Ajuste os valores conforme necessário.\n")
 
         print(f"📍 Área de scroll: {self.scroll_area}")
-        print(f"📏 Altura da linha: {self.linha_altura}px")
+        print(f"📜 Scroll clicks: {self.scroll_clicks}")
 
         input("\nPressione ENTER e posicione o MERCADO na tela...")
 
@@ -588,20 +587,23 @@ class MarketMonitor:
             print("   1. Aumentar scroll (rolou pouco)")
             print("   2. Diminuir scroll (rolou demais)")
             print("   3. Definir valor manual")
+            print(f"\n   Valor atual: {self.scroll_clicks}")
 
-            ajuste = input("Escolha (1/2/3): ")
+            ajuste = input("\nEscolha (1/2/3): ")
 
             if ajuste == '1':
-                self.linha_altura = int(self.linha_altura * 1.5)
-                print(f"✅ Aumentado para {self.linha_altura}px")
+                self.scroll_clicks = self.scroll_clicks - 5  # Mais negativo = mais scroll
+                print(f"✅ Aumentado para {self.scroll_clicks}")
             elif ajuste == '2':
-                self.linha_altura = int(self.linha_altura * 0.7)
-                print(f"✅ Diminuído para {self.linha_altura}px")
+                self.scroll_clicks = self.scroll_clicks + 3  # Menos negativo = menos scroll
+                print(f"✅ Diminuído para {self.scroll_clicks}")
             elif ajuste == '3':
-                novo = input(f"Novo valor (atual={self.linha_altura}): ")
-                if novo.isdigit():
-                    self.linha_altura = int(novo)
-                    print(f"✅ Atualizado para {self.linha_altura}px")
+                novo = input(f"Novo valor (negativo para baixo, ex: -10): ")
+                try:
+                    self.scroll_clicks = int(novo)
+                    print(f"✅ Atualizado para {self.scroll_clicks}")
+                except:
+                    print("❌ Valor inválido")
 
             # Testar novamente?
             if input("\nTestar novamente? (s/n): ").lower() == 's':
