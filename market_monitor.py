@@ -232,19 +232,13 @@ class MarketMonitor:
         time.sleep(0.3)
 
     def scroll_down(self, linhas=8):
-        """Faz scroll para baixo"""
-        # Posicionar mouse na área de scroll
-        pyautogui.moveTo(self.scroll_area[0], self.scroll_area[1])
-        time.sleep(0.1)
-
-        # Usar valor configurável de scroll
+        """Faz scroll para baixo (onde o mouse estiver)"""
+        # Scroll direto sem mover o mouse
         pyautogui.scroll(self.scroll_clicks)
         time.sleep(0.5)  # Aguardar animação
 
     def scroll_to_top(self):
-        """Volta ao topo da lista"""
-        pyautogui.moveTo(self.scroll_area[0], self.scroll_area[1])
-        time.sleep(0.1)
+        """Volta ao topo da lista (onde o mouse estiver)"""
         # Scroll grande para cima para garantir que está no topo
         pyautogui.scroll(50)
         time.sleep(0.5)
@@ -562,21 +556,16 @@ class MarketMonitor:
         print("\nVou fazer scrolls de teste. Observe se está rolando corretamente.")
         print("Ajuste os valores conforme necessário.\n")
 
-        print(f"📍 Área de scroll: {self.scroll_area}")
         print(f"📜 Scroll clicks: {self.scroll_clicks}")
 
-        input("\nPressione ENTER e posicione o MERCADO na tela...")
+        input("\nPressione ENTER, posicione o MOUSE no mercado e aguarde...")
 
         # Countdown para posicionar
         for i in range(5, 0, -1):
-            print(f"⏳ {i} segundos para posicionar o mercado...")
+            print(f"⏳ {i} segundos - posicione o MOUSE dentro do mercado...")
             time.sleep(1)
 
-        print("\n🖱️ Movendo mouse para área de scroll...")
-        pyautogui.moveTo(self.scroll_area[0], self.scroll_area[1])
-        time.sleep(1)
-
-        print("📜 Fazendo scroll de 8 linhas para baixo...")
+        print("\n📜 Fazendo scroll de 8 linhas para baixo...")
         self.scroll_down(8)
 
         time.sleep(1)
